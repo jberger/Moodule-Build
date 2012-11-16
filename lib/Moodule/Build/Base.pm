@@ -8,6 +8,7 @@ use Moodule::Build::HashStore qw/HashStore/;
 with 'Moodule::Build::Role::Logger';
 with 'Moodule::Build::Role::Prompter';
 with 'Moodule::Build::Role::ExternalCommandHelper';
+with 'Moodule::Build::Role::CBuilder'; # can this be optional?
 
 has 'dist_name' => (
   is => 'ro',

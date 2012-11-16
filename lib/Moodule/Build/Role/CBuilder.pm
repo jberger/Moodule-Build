@@ -2,9 +2,9 @@ package Moodule::Build::Role::CBuilder;
 
 use Moo::Role;
 
-my $to_arrayref = sub { 
-  ref $_[0] eq 'ARRAY' ? $_[0] : [ $_[0] ]; 
-};
+use Moodule::Build::Utils 'split_like_shell';
+
+my $to_arrayref = sub { [ split_like_shell $_[0] ] };
 
 has 'extra_compiler_flags' => (
   is => 'rw',

@@ -4946,17 +4946,6 @@ sub compile_xs {
   }
 }
 
-sub split_like_shell {
-  my ($self, $string) = @_;
-
-  return () unless defined($string);
-  return @$string if UNIVERSAL::isa($string, 'ARRAY');
-  $string =~ s/^\s+|\s+$//g;
-  return () unless length($string);
-
-  return Text::ParseWords::shellwords($string);
-}
-
 sub oneliner {
   # Returns a string that the shell can evaluate as a perl command.
   # This should be avoided whenever possible, since "the shell" really
