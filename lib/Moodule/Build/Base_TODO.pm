@@ -524,16 +524,13 @@ __PACKAGE__->add_property($_) for qw(
   destdir
   dist_abstract
   dist_author
-  dist_name
   dist_suffix
   dist_version
-  dist_version_from
   has_config_data
   install_base
   libdoc_dirs
   magic_number
   mb_version
-  module_name
   needs_compiler
   orig_dir
   pm_files
@@ -630,46 +627,6 @@ EOF
   return $opts{class};
 }
 
-sub _guess_module_name {
-  my $self = shift;
-  my $p = $self->{properties};
-  return if $p->{module_name};
-  if ( $p->{dist_version_from} && -e $p->{dist_version_from} ) {
-    my $mi = Module::Build::ModuleInfo->new_from_file($self->dist_version_from);
-    $p->{module_name} = $mi->name;
-  }
-  else {
-    my $mod_path = my $mod_name = $p->{dist_name};
-    $mod_name =~ s{-}{::}g;
-    $mod_path =~ s{-}{/}g;
-    $mod_path .= ".pm";
-    if ( -e $mod_path || -e "lib/$mod_path" ) {
-      $p->{module_name} = $mod_name;
-    }
-    else {
-      $self->log_warn( << 'END_WARN' );
-No 'module_name' was provided and it could not be inferred
-from other properties.  This will prevent a packlist from
-being written for this file.  Please set either 'module_name'
-or 'dist_version_from' in Build.PL.
-END_WARN
-    }
-  }
-}
-
-sub dist_name {
-  my $self = shift;
-  my $p = $self->{properties};
-  return $p->{dist_name} if defined $p->{dist_name};
-
-  die "Can't determine distribution name, must supply either 'dist_name' or 'module_name' parameter"
-    unless $self->module_name;
-
-  ($p->{dist_name} = $self->module_name) =~ s/::/-/g;
-
-  return $p->{dist_name};
-}
-
 sub release_status {
   my ($self) = @_;
   my $p = $self->{properties};
@@ -703,16 +660,6 @@ sub dist_suffix {
   }
 
   return $p->{dist_suffix};
-}
-
-sub dist_version_from {
-  my ($self) = @_;
-  my $p = $self->{properties};
-  if ($self->module_name) {
-    $p->{dist_version_from} ||=
-      join( '/', 'lib', split(/::/, $self->module_name) ) . '.pm';
-  }
-  return $p->{dist_version_from} || undef;
 }
 
 sub dist_version {
