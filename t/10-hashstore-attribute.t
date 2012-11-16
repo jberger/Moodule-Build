@@ -4,12 +4,12 @@ use warnings;
 use Test::More;
 
 use Moodule::Build::Base;
-use Moodule::Build::HashStore;
+use Moodule::Build::HashStore qw/HashStore/;
 
 {
   package MyTestClass;
   use Moo;
-  has Moodule::Build::Base::HashStore( 'attr' );
+  has main::HashStore( 'attr' );
 }
 
 subtest 'No default, no initial data' => sub {
@@ -47,7 +47,7 @@ subtest 'No default, with initial data (obj)' => sub {
 {
   package MyTestClassDefault;
   use Moo;
-  has Moodule::Build::Base::HashStore( 'attr' => { key => 'value' } );
+  has main::HashStore( 'attr' => { key => 'value' } );
 }
 
 subtest 'With default, no initial data' => sub {
