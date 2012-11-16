@@ -5,6 +5,9 @@ use Carp;
 
 use Moodule::Build::HashStore qw/HashStore/;
 
+with 'Moodule::Build::Role::Logger';
+with 'Moodule::Build::Role::Prompter';
+
 has 'dist_name' => (
   is => 'ro',
   writer => '_set_dist_name',
