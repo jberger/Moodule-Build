@@ -528,8 +528,6 @@ __PACKAGE__->add_property($_) for qw(
   dist_suffix
   dist_version
   dist_version_from
-  extra_compiler_flags
-  extra_linker_flags
   has_config_data
   install_base
   libdoc_dirs
@@ -592,17 +590,6 @@ sub mb_parents {
     }
     shift @out;
     return @out;
-}
-
-sub extra_linker_flags   { shift->_list_accessor('extra_linker_flags',   @_) }
-sub extra_compiler_flags { shift->_list_accessor('extra_compiler_flags', @_) }
-
-sub _list_accessor {
-  (my $self, local $_) = (shift, shift);
-  my $p = $self->{properties};
-  $p->{$_} = [@_] if @_;
-  $p->{$_} = [] unless exists $p->{$_};
-  return ref($p->{$_}) ? $p->{$_} : [$p->{$_}];
 }
 
 # XXX Problem - if Module::Build is loaded from a different directory,
