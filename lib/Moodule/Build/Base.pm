@@ -7,7 +7,7 @@ use Moodule::Build::HashStore;
 
 sub HashStore {
   my $name = shift or croak "Must specify the name of the HashStore";
-  my ($default) = @_;
+  my $default = @_ ? shift : {};
   if ($default && ref $default ne 'HASH') {
     croak "HashStore default must be a hash reference";
   }
@@ -21,9 +21,7 @@ sub HashStore {
       return $_[0] if eval{ $_[0]->isa('Moodule::Build::HashStore') };
       return Moodule::Build::HashStore->new( data => $_[0] );
     },
-    default => $default 
-      ? sub { Moodule::Build::HashStore->new( data => $default ) } 
-      : sub { Moodule::Build::HashStore->new },
+    default => sub { Moodule::Build::HashStore->new( data => $default ) },
   );
 }
 
