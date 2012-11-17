@@ -1,6 +1,9 @@
 use strict;
 use warnings;
 
+use lib 't';
+use MyTestHelper;
+
 use Test::More;
 
 use File::Temp ();
@@ -75,22 +78,4 @@ subtest 'Constructor without either name' => sub {
 };
 
 done_testing;
-
-sub make_file {
-  my $content = pop;
-  my $filename = pop;
-
-  my $old = getcwd;
-
-  for my $dir (@_) {
-    mkdir $dir or die "Cannot create new dir $dir\n";
-    chdir $dir or die "Cannot chdir into $dir\n";
-  }
-
-  open my $fh, '>', $filename;
-  print $fh "$content";
-
-  chdir $old;
-
-}
 

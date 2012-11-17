@@ -17,7 +17,7 @@ sub add_to_cleanup {
   my $self = shift;
   my $cleanup = $self->cleanup;
   my %files = map {localize_file_path($_), 1} @_;
-  %$cleanup = %$cleanup, %files;
+  %$cleanup = (%$cleanup, %files);
 }
 
 sub delete_filetree {
