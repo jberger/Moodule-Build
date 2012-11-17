@@ -2672,24 +2672,6 @@ sub _is_default_installable {
          ) ? 1 : 0;
 }
 
-sub _is_ActivePerl {
-#  return 0;
-  my $self = shift;
-  unless (exists($self->{_is_ActivePerl})) {
-    $self->{_is_ActivePerl} = (eval { require ActivePerl::DocTools; } || 0);
-  }
-  return $self->{_is_ActivePerl};
-}
-
-sub _is_ActivePPM {
-#  return 0;
-  my $self = shift;
-  unless (exists($self->{_is_ActivePPM})) {
-    $self->{_is_ActivePPM} = (eval { require ActivePerl::PPM; } || 0);
-  }
-  return $self->{_is_ActivePPM};
-}
-
 sub ACTION_manpages {
   my $self = shift;
 

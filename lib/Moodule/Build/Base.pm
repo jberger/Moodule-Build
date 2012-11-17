@@ -13,6 +13,7 @@ with 'Moodule::Build::Role::CleanupHelper';
 with 'Moodule::Build::Role::Prompter';
 with 'Moodule::Build::Role::ExternalCommandHelper';
 with 'Moodule::Build::Role::CBuilder'; # can this be optional?
+with 'Moodule::Build::Role::ActiveState';
 
 1;
 
