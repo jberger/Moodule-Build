@@ -1,6 +1,8 @@
 package Moodule::Build::Role::CleanupHelper;
 
-use Moodule::Build::Utils 'localize_file_paths';
+use Moo::Role;
+
+use Moodule::Build::Utils 'localize_file_path';
 use File::Path ();
 
 requires qw/ log_info log_verbose depends_on /;
@@ -50,4 +52,7 @@ sub ACTION_realclean {
     qw/config_dir mymetafile mymetafile2 build_script/;
   $self->delete_filetree( @to_delete );
 }
+
+1;
+
 
