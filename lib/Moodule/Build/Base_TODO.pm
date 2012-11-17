@@ -744,18 +744,6 @@ sub find_module_by_name { # Method provided for backwards compatibility
   }
 }
 
-sub add_to_cleanup {
-  my $self = shift;
-  my %files = map {$self->localize_file_path($_), 1} @_;
-  $self->{phash}{cleanup}->write(\%files);
-}
-
-sub cleanup {
-  my $self = shift;
-  my $all = $self->{phash}{cleanup}->read;
-  return keys %$all;
-}
-
 sub config_file {
   my $self = shift;
   return unless -d $self->config_dir;
@@ -2559,15 +2547,16 @@ sub _find_file_by_type {
            @{ $self->rscan_dir($dir, $self->file_qr("\\.$type\$")) } };
 }
 
-sub localize_file_path {
-  my ($self, $path) = @_;
-  return File::Spec->catfile( split m{/}, $path );
-}
+# now functions not methods in Moodule::Build::Utils
+#sub localize_file_path {
+#  my ($self, $path) = @_;
+#  return File::Spec->catfile( split m{/}, $path );
+#}
 
-sub localize_dir_path {
-  my ($self, $path) = @_;
-  return File::Spec->catdir( split m{/}, $path );
-}
+#sub localize_dir_path {
+#  my ($self, $path) = @_;
+#  return File::Spec->catdir( split m{/}, $path );
+#}
 
 sub fix_shebang_line { # Adapted from fixin() in ExtUtils::MM_Unix 1.35
   my ($self, @files) = @_;
@@ -3170,23 +3159,6 @@ sub ACTION_installdeps {
   }
 
   $self->do_system($command, @opts, @install);
-}
-
-sub ACTION_clean {
-  my ($self) = @_;
-  $self->log_info("Cleaning up build files\n");
-  foreach my $item (map glob($_), $self->cleanup) {
-    $self->delete_filetree($item);
-  }
-}
-
-sub ACTION_realclean {
-  my ($self) = @_;
-  $self->depends_on('clean');
-  $self->log_info("Cleaning up configuration files\n");
-  $self->delete_filetree(
-    $self->config_dir, $self->mymetafile, $self->mymetafile2, $self->build_script
-  );
 }
 
 sub ACTION_ppd {
@@ -4758,19 +4730,6 @@ sub rscan_dir {
 
   File::Find::find({wanted => $subr, no_chdir => 1}, $dir);
   return \@result;
-}
-
-sub delete_filetree {
-  my $self = shift;
-  my $deleted = 0;
-  foreach (@_) {
-    next unless -e $_;
-    $self->log_verbose("Deleting $_\n");
-    File::Path::rmtree($_, 0, 0);
-    die "Couldn't remove '$_': $!\n" if -e $_;
-    $deleted++;
-  }
-  return $deleted;
 }
 
 sub autosplit_file {

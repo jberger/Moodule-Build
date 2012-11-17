@@ -9,6 +9,8 @@ use Text::ParseWords ();
 
 our @EXPORT_OK = ( qw/
   split_like_shell
+  localize_file_path
+  localize_dir_path
 / );
 
 sub split_like_shell {
@@ -20,5 +22,15 @@ sub split_like_shell {
   return () unless length($string);
 
   return Text::ParseWords::shellwords($string);
+}
+
+sub localize_file_path {
+  my ($path) = @_;
+  return File::Spec->catfile( split m{/}, $path );
+}
+
+sub localize_dir_path {
+  my ($path) = @_;
+  return File::Spec->catdir( split m{/}, $path );
 }
 
