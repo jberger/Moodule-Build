@@ -542,7 +542,6 @@ __PACKAGE__->add_property($_) for qw(
   release_status
   script_files
   scripts
-  share_dir
   sign
   test_files
   xs_files
@@ -2372,56 +2371,6 @@ sub process_support_files {
   }
 }
 
-sub process_share_dir_files {
-  my $self = shift;
-  my $files = $self->_find_share_dir_files;
-  return unless $files;
-
-  # root for all File::ShareDir paths
-  my $share_prefix = File::Spec->catdir($self->blib, qw/lib auto share/);
-
-  # copy all share files to blib
-  while (my ($file, $dest) = each %$files) {
-    $self->copy_if_modified(
-      from => $file, to => File::Spec->catfile( $share_prefix, $dest )
-    );
-  }
-}
-
-sub _find_share_dir_files {
-  my $self = shift;
-  my $share_dir = $self->share_dir;
-  return unless $share_dir;
-
-  my @file_map;
-  if ( $share_dir->{dist} ) {
-    my $prefix = "dist/".$self->dist_name;
-    push @file_map, $self->_share_dir_map( $prefix, $share_dir->{dist} );
-  }
-
-  if ( $share_dir->{module} ) {
-    for my $mod ( keys %{ $share_dir->{module} } ) {
-      (my $altmod = $mod) =~ s{::}{-}g;
-      my $prefix = "module/$altmod";
-      push @file_map, $self->_share_dir_map($prefix, $share_dir->{module}{$mod});
-    }
-  }
-
-  return { @file_map };
-}
-
-sub _share_dir_map {
-  my ($self, $prefix, $list) = @_;
-  my %files;
-  for my $dir ( @$list ) {
-    for my $f ( @{ $self->rscan_dir( $dir, sub {-f} )} ) {
-      $f =~ s{\A.*?\Q$dir\E/}{};
-      $files{"$dir/$f"} = "$prefix/$f";
-    }
-  }
-  return %files;
-}
-
 sub process_PL_files {
   my ($self) = @_;
   my $files = $self->find_PL_files;
@@ -3408,7 +3357,7 @@ sub do_create_readme {
 
   my $docfile = $self->_main_docfile;
   unless ( $docfile ) {
-    $self->log_warn(<<EOF);
+    $self->log_warn( <<EOF );
 Cannot create README: can't determine which file contains documentation;
 Must supply either 'dist_version_from', or 'module_name' parameter.
 EOF
@@ -3753,62 +3702,6 @@ sub _files_in {
     push @files, $full_path;
   }
   return @files;
-}
-
-sub share_dir {
-  my $self = shift;
-  my $p = $self->{properties};
-
-  $p->{share_dir} = shift if @_;
-
-  # Always coerce to proper hash form
-  if    ( ! defined $p->{share_dir} ) {
-    return;
-  }
-  elsif ( ! ref $p->{share_dir}  ) {
-    # scalar -- treat as a single 'dist' directory
-    $p->{share_dir} = { dist => [ $p->{share_dir} ] };
-  }
-  elsif ( ref $p->{share_dir} eq 'ARRAY' ) {
-    # array -- treat as a list of 'dist' directories
-    $p->{share_dir} = { dist => $p->{share_dir} };
-  }
-  elsif ( ref $p->{share_dir} eq 'HASH' ) {
-    # hash -- check structure
-    my $share_dir = $p->{share_dir};
-    # check dist key
-    if ( defined $share_dir->{dist} ) {
-      if ( ! ref $share_dir->{dist} ) {
-        # scalar, so upgrade to arrayref
-        $share_dir->{dist} = [ $share_dir->{dist} ];
-      }
-      elsif ( ref $share_dir->{dist} ne 'ARRAY' ) {
-        die "'dist' key in 'share_dir' must be scalar or arrayref";
-      }
-    }
-    # check module key
-    if ( defined $share_dir->{module} ) {
-      my $mod_hash = $share_dir->{module};
-      if ( ref $mod_hash eq 'HASH' ) {
-        for my $k ( keys %$mod_hash ) {
-          if ( ! ref $mod_hash->{$k} ) {
-            $mod_hash->{$k} = [ $mod_hash->{$k} ];
-          }
-          elsif( ref $mod_hash->{$k} ne 'ARRAY' ) {
-            die "modules in 'module' key of 'share_dir' must be scalar or arrayref";
-          }
-        }
-      }
-      else {
-          die "'module' key in 'share_dir' must be hashref";
-      }
-    }
-  }
-  else {
-    die "'share_dir' must be hashref, arrayref or string";
-  }
-
-  return $p->{share_dir};
 }
 
 sub script_files {
@@ -4699,19 +4592,6 @@ sub depends_on {
   foreach my $action (@_) {
     $self->_call_action($action);
   }
-}
-
-sub rscan_dir {
-  my ($self, $dir, $pattern) = @_;
-  my @result;
-  local $_; # find() can overwrite $_, so protect ourselves
-  my $subr = !$pattern ? sub {push @result, $File::Find::name} :
-             !ref($pattern) || (ref $pattern eq 'Regexp') ? sub {push @result, $File::Find::name if /$pattern/} :
-             ref($pattern) eq 'CODE' ? sub {push @result, $File::Find::name if $pattern->()} :
-             die "Unknown pattern type";
-
-  File::Find::find({wanted => $subr, no_chdir => 1}, $dir);
-  return \@result;
 }
 
 sub autosplit_file {
