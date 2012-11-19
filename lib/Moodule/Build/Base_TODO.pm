@@ -450,7 +450,7 @@ sub ACTION_config_data {
 __PACKAGE__->add_property(auto_configure_requires => 1);
 __PACKAGE__->add_property(blib => 'blib');
 __PACKAGE__->add_property(build_class => 'Module::Build');
-__PACKAGE__->add_property(build_elements => [qw(PL support pm xs share_dir pod script)]);
+__PACKAGE__->add_property(build_elements => [qw(PL support pm xs pod script)]);
 __PACKAGE__->add_property(build_script => 'Build');
 __PACKAGE__->add_property(build_bat => 0);
 __PACKAGE__->add_property(bundle_inc => []);
@@ -993,10 +993,8 @@ EOM
     }
   }
 
-  # If using share_dir, require File::ShareDir
-  if ( $self->share_dir ) {
-    $self->_add_prereq( 'requires', 'File::ShareDir', '1.00' );
-  }
+  #TODO add attribute: prereq_handlers; add method: add_prereq_handler
+  $self->$_() for @{ $self->prereq_handlers }
 
   return;
 }

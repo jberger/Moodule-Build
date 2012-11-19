@@ -2,7 +2,7 @@ package Moodule::Build::Role::ShareDir;
 
 use Moo::Role;
 
-requires qw/rscan_dir blib copy_if_modified dist_name/;
+requires qw/rscan_dir dist_name/;
 
 use File::Spec;
 
@@ -77,10 +77,33 @@ has 'share_dir' => (
   isa => $isa,
 );
 
+after 'new' => sub {
+  my $self = shift;
+
+  if ($self->does('Moodule::Build::Role::PrereqHandler')) {
+    $self->add_prereq_handler('_share_dir_prereq_handler');
+  }
+
+  #TODO if $self->does('Moodule::Build::Role::Builder')) {
+  if ( $self->can('build_elements') ) {
+    push @{ $self->build_elements }, 'share_dir';
+  }
+};
+
+sub _share_dir_prereq_handler {
+  my $self = shift;
+  # If using share_dir, require File::ShareDir
+  if ( $self->share_dir ) {
+    $self->_add_prereq( 'requires', 'File::ShareDir', '1.00' );
+  }
+}
+
 sub process_share_dir_files {
   my $self = shift;
   my $files = $self->_find_share_dir_files;
   return unless $files;
+
+  #TODO perhaps: if ($self->does('Moodule::Build::Role::Builder')) {
 
   # root for all File::ShareDir paths
   my $share_prefix = File::Spec->catdir($self->blib, qw/lib auto share/);
@@ -91,6 +114,8 @@ sub process_share_dir_files {
       from => $file, to => File::Spec->catfile( $share_prefix, $dest )
     );
   }
+
+  #TODO perhaps:  } else { warn ... }
 }
 
 sub _find_share_dir_files {

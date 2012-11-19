@@ -21,8 +21,6 @@ use Test::More;
   with 'Moodule::Build::Role::RScanDir';
   with 'Moodule::Build::Role::ShareDir';
 
-  sub blib { 'blib' }
-  sub copy_if_modified { 1 }
 }
 
 my $module = 'Simple::Share';
