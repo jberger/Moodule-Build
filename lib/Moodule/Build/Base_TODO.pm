@@ -182,16 +182,6 @@ sub _construct {
   $p->{requires} = delete $p->{prereq} if defined $p->{prereq};
   $p->{script_files} = delete $p->{scripts} if defined $p->{scripts};
 
-  # Convert to from shell strings to arrays
-  for ('extra_compiler_flags', 'extra_linker_flags') {
-    $p->{$_} = [ $self->split_like_shell($p->{$_}) ] if exists $p->{$_};
-  }
-
-  # Convert to arrays
-  for ('include_dirs') {
-    $p->{$_} = [ $p->{$_} ] if exists $p->{$_} && !ref $p->{$_}
-  }
-
   $self->add_to_cleanup( @{delete $p->{add_to_cleanup}} )
     if $p->{add_to_cleanup};
 
@@ -450,7 +440,7 @@ sub ACTION_config_data {
 __PACKAGE__->add_property(auto_configure_requires => 1);
 __PACKAGE__->add_property(blib => 'blib');
 __PACKAGE__->add_property(build_class => 'Module::Build');
-__PACKAGE__->add_property(build_elements => [qw(PL support pm xs pod script)]);
+__PACKAGE__->add_property(build_elements => [qw(PL pm xs pod script)]);
 __PACKAGE__->add_property(build_script => 'Build');
 __PACKAGE__->add_property(build_bat => 0);
 __PACKAGE__->add_property(bundle_inc => []);
@@ -2348,27 +2338,6 @@ sub process_files_by_extension {
   }
 }
 
-sub process_support_files {
-  my $self = shift;
-  my $p = $self->{properties};
-  return unless $p->{c_source};
-
-  my $files;
-  if (ref($p->{c_source}) eq "ARRAY") {
-      push @{$p->{include_dirs}}, @{$p->{c_source}};
-      for my $path (@{$p->{c_source}}) {
-          push @$files, @{ $self->rscan_dir($path, $self->file_qr('\.c(c|p|pp|xx|\+\+)?$')) };
-      }
-  } else {
-      push @{$p->{include_dirs}}, $p->{c_source};
-      $files = $self->rscan_dir($p->{c_source}, $self->file_qr('\.c(c|p|pp|xx|\+\+)?$'));
-  }
-
-  foreach my $file (@$files) {
-      push @{$p->{objects}}, $self->compile_c($file);
-  }
-}
-
 sub process_PL_files {
   my ($self) = @_;
   my $files = $self->find_PL_files;
@@ -3572,18 +3541,6 @@ sub _spew {
     close $fh;
 }
 
-sub _case_tolerant {
-  my $self = shift;
-  if ( ref $self ) {
-    $self->{_case_tolerant} = File::Spec->case_tolerant
-      unless defined($self->{_case_tolerant});
-    return $self->{_case_tolerant};
-  }
-  else {
-    return File::Spec->case_tolerant;
-  }
-}
-
 sub _append_maniskip {
   my $self = shift;
   my $skip = shift;
@@ -3667,11 +3624,6 @@ sub ACTION_manifest_skip {
   $self->log_info("Creating a new MANIFEST.SKIP file\n");
   return $self->_write_default_maniskip;
   return -e 'MANIFEST.SKIP'
-}
-
-# Case insensitive regex for files
-sub file_qr {
-    return shift->{_case_tolerant} ? qr($_[0])i : qr($_[0]);
 }
 
 sub dist_dir {
@@ -4597,55 +4549,6 @@ sub autosplit_file {
   require AutoSplit;
   my $dir = File::Spec->catdir($to, 'lib', 'auto');
   AutoSplit::autosplit($file, $dir);
-}
-
-sub cbuilder {
-  # Returns a CBuilder object
-
-  my $self = shift;
-  my $s = $self->{stash};
-  return $s->{_cbuilder} if $s->{_cbuilder};
-
-  require ExtUtils::CBuilder;
-  return $s->{_cbuilder} = ExtUtils::CBuilder->new(
-    config => $self->config,
-    ($self->quiet ? (quiet => 1 ) : ()),
-  );
-}
-
-sub have_c_compiler {
-  my ($self) = @_;
-
-  my $p = $self->{properties};
-  return $p->{_have_c_compiler} if defined $p->{_have_c_compiler};
-
-  $self->log_verbose("Checking if compiler tools configured... ");
-  my $b = eval { $self->cbuilder };
-  my $have = $b && eval { $b->have_compiler };
-  $self->log_verbose($have ? "ok.\n" : "failed.\n");
-  return $p->{_have_c_compiler} = $have;
-}
-
-sub compile_c {
-  my ($self, $file, %args) = @_;
-
-  if ( ! $self->have_c_compiler ) {
-    die "Error: no compiler detected to compile '$file'.  Aborting\n";
-  }
-
-  my $b = $self->cbuilder;
-  my $obj_file = $b->object_file($file);
-  $self->add_to_cleanup($obj_file);
-  return $obj_file if $self->up_to_date($file, $obj_file);
-
-  $b->compile(source => $file,
-              defines => $args{defines},
-              object_file => $obj_file,
-              include_dirs => $self->include_dirs,
-              extra_compiler_flags => $self->extra_compiler_flags,
-             );
-
-  return $obj_file;
 }
 
 sub link_c {

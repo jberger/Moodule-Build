@@ -3,6 +3,12 @@ package Moodule::Build::Role::RScanDir;
 use Moo::Role;
 
 use File::Find ();
+use File::Spec;
+
+has 'case_tolerant' => (
+  is => 'ro',
+  default => sub { File::Spec->case_tolerant },
+);
 
 sub rscan_dir {
   my ($self, $dir, $pattern) = @_;
@@ -15,6 +21,11 @@ sub rscan_dir {
 
   File::Find::find({wanted => $subr, no_chdir => 1}, $dir);
   return \@result;
+}
+
+# Case insensitive regex for files
+sub file_qr {
+    return shift->case_tolerant ? qr($_[0])i : qr($_[0]);
 }
 
 1;
