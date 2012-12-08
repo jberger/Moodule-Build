@@ -18,7 +18,6 @@ use Test::More;
 
   has 'dist_name' => ( is => 'rw', default => sub { 'Simple-Share' } );
 
-  with 'Moodule::Build::Role::RScanDir';
   with 'Moodule::Build::Role::ShareDir';
 
 }

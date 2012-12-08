@@ -2,7 +2,8 @@ package Moodule::Build::Role::ShareDir;
 
 use Moo::Role;
 
-requires qw/rscan_dir dist_name/;
+requires qw/dist_name/;
+with 'Moodule::Build::Role::RScanDir';
 
 use File::Spec;
 
