@@ -2,7 +2,7 @@ package Moodule::Build::Role::ShareDir;
 
 use Moo::Role;
 
-requires qw/dist_name/;
+requires qw/dist_name on_event/;
 with 'Moodule::Build::Role::RScanDir';
 
 use File::Spec;
@@ -81,9 +81,7 @@ has 'share_dir' => (
 after 'new' => sub {
   my $self = shift;
 
-  if ($self->does('Moodule::Build::Role::PrereqHandler')) {
-    $self->add_prereq_handler('_share_dir_prereq_handler');
-  }
+  $self->on_event( 'prereqs' => '_share_dir_prereq_handler' );
 
   #TODO if $self->does('Moodule::Build::Role::Builder')) {
   if ( $self->can('build_elements') ) {

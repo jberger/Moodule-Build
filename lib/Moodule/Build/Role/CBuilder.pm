@@ -3,7 +3,7 @@ package Moodule::Build::Role::CBuilder;
 use Moo::Role;
 use Moodule::Build::Utils 'split_like_shell';
 
-requires qw/log_verbose up_to_date/;
+requires qw/log_verbose/;# up_to_date/;
 
 with 'Moodule::Build::Role::RScanDir';
 
@@ -111,16 +111,16 @@ sub compile_c {
 
 sub process_support_files {
   my $self = shift;
-  my $source = $self->c_source;
+  my $c_source = $self->c_source;
 
   my $files;
-  push @{$p->include_dirs}, @$c_source;
+  push @{$self->include_dirs}, @$c_source;
   for my $path (@$c_source) {
     push @$files, @{ $self->rscan_dir($path, $self->file_qr('\.c(c|p|pp|xx|\+\+)?$')) };
   }
 
   foreach my $file (@$files) {
-      push @{$p->objects}, $self->compile_c($file);
+      push @{$self->objects}, $self->compile_c($file);
   }
 }
 

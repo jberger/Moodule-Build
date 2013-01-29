@@ -20,6 +20,7 @@ use Test::More;
 
   with 'Moodule::Build::Role::ShareDir';
 
+  sub on_event { }
 }
 
 my $module = 'Simple::Share';
